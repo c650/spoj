@@ -9,27 +9,53 @@ inputs.each do |str|
 	lhs = exp.first.to_i
 	rhs = exp.last.to_i
 	op = str[str =~ /\*|\+|\-/]
-	
+
 	l_len = lhs.to_s.length
 	r_len = rhs.to_s.length
-	
-	len = [(lhs+rhs).to_s.length, lhs.to_s.length+1, rhs.to_s.length+1].max
+
+
 	case op
 	when "+"
-		puts "#{format("%#{len}i", lhs)}\n+#{format("%#{len-1}i",rhs)}"
-		puts "-"*len
-		puts "#{format("%#{len}i", lhs+rhs)}"
+		len = [(lhs+rhs).to_s.length, lhs.to_s.length, rhs.to_s.length+1].max
+		puts " "*(len-l_len).abs + lhs.to_s
+		puts " "*(len-r_len-1).abs + op + rhs.to_s
+
+		# calc dashes
+		t = [r_len+1, (lhs+rhs).to_s.length].max
+		puts " "*(len-t) + "-"*t
+
+		puts format("%#{len}i", lhs+rhs)
 	when "-"
-		puts "#{format("%#{len}i", lhs)}\n-#{format("%#{len-1}i",rhs)}"
-		puts "-"*len
-		puts "#{format("%#{len}i", lhs-rhs)}"
+		len = [(lhs-rhs).to_s.length, lhs.to_s.length, rhs.to_s.length+1].max
+		puts " "*(len-l_len).abs + lhs.to_s
+		puts " "*(len-r_len-1).abs + op + rhs.to_s
+
+		# calc dashes
+		t = [r_len+1, (lhs-rhs).to_s.length].max
+		puts " "*(len-t) + "-"*t
+
+		puts format("%#{len}i", lhs-rhs)
 	when "*"
-		puts "#{format("%#{len}i", lhs)}\n*#{format("%#{len-1}i",rhs)}"
-		
+		top_len = [lhs.to_s.length, rhs.to_s.length+1].max
+		len = [(lhs*rhs).to_s.length, top_len].max
+		puts " "*(len-l_len).abs + lhs.to_s
+		puts " "*(len-r_len-1).abs + op + rhs.to_s
+
+		# calculate dashes
+		t = [r_len+1, ((rhs % 10) * lhs).to_s.length].max
+		puts " "*(len-t) + "-"*t
+
+		rhs.to_s.reverse.split("").each_with_index do |num,i|
+			partial_prod = (num.to_i * lhs).to_s
+			puts " "*(len-partial_prod.length-i) + partial_prod
+		end
+
+		if rhs >= 10
+			puts " "*(len-(lhs*rhs).to_s.length) + "-"*(lhs*rhs).to_s.length
+			puts " "*(len-(lhs*rhs).to_s.length) + (lhs*rhs).to_s
+		end
 	end
-	
+
 	puts ""
-	
+
 end
-
-
