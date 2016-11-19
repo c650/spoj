@@ -1,0 +1,5 @@
+*.exe
+*.so
+*.o
+*.out
+*.class
