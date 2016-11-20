@@ -6,60 +6,60 @@
 
 static const size_t upper = 32000;
 
-// static void eratos() {
-// 	bool *arr = new bool[upper];
-// 	for (size_t i = 2 ; i < upper ; i++)
-// 		arr[i] = true;
-//
-// 	for (size_t i = 2 , j; i*i < upper ; i++) {
-// 		if (arr[i]) {
-// 			for (j = i*i; j < upper ; j += i)
-// 				arr[j] = false;
-// 		}
-// 	}
-//
-// 	// for (size_t i = 2 ; i < upper ; i++)
-// 	// 	if (arr[i]) std::cout << i << std::endl;
-//
-// 	delete[] arr;
-// }
-
-static void atkin(std::vector<size_t>& res) {
+static void eratos(std::vector<size_t>& primes) {
 	bool *arr = new bool[upper];
-	for (size_t i = 0 ; i < upper ; i++)
-		arr[i] = false;
+	for (size_t i = 2 ; i < upper ; i++)
+		arr[i] = true;
 
-	size_t x,y,n;
-	for (x = 1; x*x < upper; x++) {
-		for (y = 1; y*y < upper; y++) {
-			n = 4*x*x + y*y;
-			if (n < upper && n % 4 == 1)
-				arr[n] ^= true;
-
-			n -= x*x;
-			if (n < upper && n % 6 == 1)
-				arr[n] ^= true;
-
-			n -= 2*y*y;
-			if (x > y && n < upper && n % 12 == 11)
-				arr[n] ^= true;
-		}
-	}
-	for (n = 5; n*n < upper; n++) {
-		if (arr[n]) {
-			for (x = n*n; x < upper; x += n*n)
-				arr[x] = false;
+	for (size_t i = 2 , j; i*i < upper ; i++) {
+		if (arr[i]) {
+			for (j = i*i; j < upper ; j += i)
+				arr[j] = false;
 		}
 	}
 
-	if (upper >= 2) res.push_back(2);
-	if (upper >= 3) res.push_back(3);
-
-	for (x = 5; x < upper; x++)
-		if (arr[x]) res.push_back(x);
+	for (size_t i = 2 ; i < upper ; i++)
+		if (arr[i]) primes.push_back(i);
 
 	delete[] arr;
 }
+
+// static void atkin(std::vector<size_t>& res) {
+// 	bool *arr = new bool[upper];
+// 	for (size_t i = 0 ; i < upper ; i++)
+// 		arr[i] = false;
+//
+// 	size_t x,y,n;
+// 	for (x = 1; x*x < upper; x++) {
+// 		for (y = 1; y*y < upper; y++) {
+// 			n = 4*x*x + y*y;
+// 			if (n < upper && n % 4 == 1)
+// 				arr[n] ^= true;
+//
+// 			n -= x*x;
+// 			if (n < upper && n % 6 == 1)
+// 				arr[n] ^= true;
+//
+// 			n -= 2*y*y;
+// 			if (x > y && n < upper && n % 12 == 11)
+// 				arr[n] ^= true;
+// 		}
+// 	}
+// 	for (n = 5; n*n < upper; n++) {
+// 		if (arr[n]) {
+// 			for (x = n*n; x < upper; x += n*n)
+// 				arr[x] = false;
+// 		}
+// 	}
+//
+// 	if (upper >= 2) res.push_back(2);
+// 	if (upper >= 3) res.push_back(3);
+//
+// 	for (x = 5; x < upper; x++)
+// 		if (arr[x]) res.push_back(x);
+//
+// 	delete[] arr;
+// }
 
 int main() {
 
@@ -67,10 +67,7 @@ int main() {
 	std::vector<size_t> primes(2919);
 	primes.clear();
 
-	// clock_t begin = std::clock();
-	atkin(primes);
-	// begin = std::clock() - begin;
-	// std::cout << "Atkin: " << double(begin)/CLOCKS_PER_SEC << std::endl;
+	eratos(primes);
 
 	int t, m , n;
 	std::cin >> t;
