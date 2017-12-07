@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 
 /* [eq][num3][num6][num9][k] */
-long long dp[2][51][51][51][51];
+long long dp[51][51][51][51];
 
 long long ans[101];
 
@@ -11,8 +11,8 @@ static long long go(const int& tc, const int& sc, const int& nc, const std::stri
 		return tc >= 1 && tc == sc && tc == nc;
 	}
 
-	if (dp[eq][tc][sc][nc][k] != -1) {
-		return dp[eq][tc][sc][nc][k];
+	if (!eq && dp[tc][sc][nc][k] != -1) {
+		return dp[tc][sc][nc][k];
 	}
 
 	int top = eq ? bound.at(k) - '0' : 9;
@@ -26,20 +26,11 @@ static long long go(const int& tc, const int& sc, const int& nc, const std::stri
 
 	// std::printf("go(%d,%d,%d,,%d,%d) -> %lld\n", tc,sc,nc,eq,k, cnt);
 
-	return dp[eq][tc][sc][nc][k] = cnt % 1000000007;
+	if (!eq) return dp[tc][sc][nc][k] = cnt % 1000000007;
+	else return cnt % 1000000007;
 }
 
 static long long sub(const std::string& num) {
-	for (int i = 0; i < 51; ++i) {
-		for (int j = 0; j < 51; ++j) {
-			for (int k = 0; k < 51; ++k) {
-				for (int l = 0; l < 51; ++l) {
-					dp[0][i][j][k][l] = dp[1][i][j][k][l] = -1;
-				}
-			}
-		}
-	}
-
 	return go(0,0,0,num, true, 0);
 }
 
@@ -61,13 +52,36 @@ static long long one_case(const std::string& l, const std::string& r) {
 	return (a - b < 0 ? 1000000007L + a - b : a - b) + is_369(l);
 }
 
+static void pad(std::string& n) {
+	std::stringstream ss;
+	for (int i = 0; i + n.length() < 51; ++i) {
+		ss << "0";
+	}
+	ss << n;
+	n = ss.str();
+}
+
 int main(void) {
+
+	for (int i = 0; i < 51; ++i) {
+		for (int j = 0; j < 51; ++j) {
+			for (int k = 0; k < 51; ++k) {
+				for (int l = 0; l < 51; ++l) {
+					dp[i][j][k][l] = -1;
+				}
+			}
+		}
+	}
+
 	int t;
 	std::scanf("%d", &t);
 
 	std::string l,r;
 	for (int i = 0; i < t; ++i) {
 		std::cin >> l >> r;
+		pad(l);
+		pad(r);
+
 		ans[i] = one_case(l,r);
 	}
 
