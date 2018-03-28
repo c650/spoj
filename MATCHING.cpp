@@ -5,122 +5,91 @@
 
 typedef long long ll;
 
-const static ll INF = std::numeric_limits<int>::max();
-struct DinicFlow {
+struct HopcroftKarp {
+	typedef long long ll;
 
-	struct edge {
-		ll a, b;
-		ll flow,cap;
+	struct Node {
+		ll id;
+		ll level;
 
-		edge* rev;
+		Node* pair;
+		std::vector<Node*> adj;
 
-		edge(const ll& _a, const ll& _b, const ll& _flow, const ll& _cap, edge* _rev = nullptr)
-			: a(_a), b(_b), flow(_flow), cap(_cap), rev(_rev) {}
+		bool used;
+
+		Node(const ll& ii)
+			: id(ii), level(-1), pair(nullptr), used(false) {}
 	};
 
-	typedef std::vector<std::vector< edge* >> adj_list;
+	ll n;
+	std::vector<Node*> graph;
 
-	/* for the DFS part */
-	std::vector<char> blocked;
-
-	/* for the BFS part */
-	std::vector<ll> distances;
-
-	adj_list graph;
-
-	ll n; /* number of nodes */
-	ll source;
-	ll sink;
-
-	/* intakes the number of nodes in the graph */
-	DinicFlow(const ll& _n) : n(_n) {
-		source = n++; /* idk why */
-		sink = n++;
-
-		blocked.assign(n, false);
-		distances.assign(n, INF);
-
-		graph.assign(n, std::vector<edge*>());
+	HopcroftKarp(const ll& nn) {
+		n = nn;
+		graph.resize(n);
+		for (ll i = 0; i < n; ++i)
+			graph[i] = new Node(i);
 	}
 
-	~DinicFlow(void) {
-		/* gotta free that memory!*/
-		for (auto& row : graph) {
-			for (auto& e : row) {
-				delete e;
-			}
-		}
+	~HopcroftKarp(void) {
+		for (Node* e : graph)
+			delete e;
 	}
 
-	/* add the directed edge, and it adds the backedge for you */
-	void add_edge(const ll& a, const ll& b, const ll& cap, const ll& flow = 0) {
-		edge* normal = new edge(a,b,flow,cap);
-		edge* reverse = normal->rev = new edge(b,a,0,0, normal);
-
-		graph[a].push_back(normal);
-		graph[b].push_back(reverse);
-
-		if (!normal || !reverse) {
-			std::fprintf(stderr,"fail\n");
-		}
+	void add_edge(const ll& a, const ll& b) {
+		if (!graph[a] || !graph[b]) return;
+		graph[a]->adj.push_back(graph[b]);
+		graph[b]->adj.push_back(graph[a]);
 	}
 
-	bool bfs(void) {
-		distances.assign(n, INF);
-		distances[sink] = 0;
-
-		std::queue<ll> order;
-		order.push(sink);
-
-		while (!order.empty()) {
-			ll best = order.front();
-			order.pop();
-
-			if (best == source) return true;
-
-			for (edge* neigh : graph[best]) {
-				if (neigh->rev->cap > neigh->rev->flow && distances[neigh->b] > 1 + distances[best]) {
-					distances[neigh->b] = 1 + distances[best];
-					order.push(neigh->b);
+	/* matches the graph. */
+	ll match(void) {
+		for (ll match = 0; ;) {
+			std::queue<Node*> order;
+			for (auto& node : graph) {
+				node->level = -1;
+				if (node->pair == nullptr) {
+					node->level = 0;
+					order.push(node);
 				}
 			}
-		}
 
-		return false;
-	}
-
-	ll dfs(const ll& pos, const ll& min) {
-		if (pos == sink) {
-			return min;
-		}
-
-		ll flow = 0;
-		for (edge* e : graph[pos]) {
-			ll curr = 0;
-			if (!blocked[e->b] && distances[e->b] == distances[pos] - 1 && e->cap > e->flow) {
-				curr = dfs(e->b, std::min(min - flow, e->cap - e->flow));
-				e->flow += curr;
-				e->rev->flow = -(e->flow);
-				flow += curr;
+			while (!order.empty()) {
+				Node* curr = order.front(); order.pop();
+				for (auto& neigh : curr->adj) {
+					Node* w = neigh->pair;
+					if (w != nullptr && w->level < 0) {
+						w->level = curr->level + 1;
+						order.push(w);
+					}
+				}
 			}
-			if (flow == min) return flow;
+
+			for (auto& node : graph)
+				node->used = false;
+
+			ll d = 0;
+			for (auto& node : graph)
+				d += node->pair == nullptr && dfs(node);
+
+			match += d;
+
+			/* the end */
+			if (d == 0) return match;
 		}
-		blocked[pos] = flow != min;
-		return flow;
 	}
 
-	ll flow(void) {
-		for (auto& row : graph) {
-			for (edge* e : row)
-				e->flow = 0;
+	bool dfs(Node* curr) {
+		curr->used = true;
+		for (auto& neigh : curr->adj) {
+			Node* w = graph[neigh->id]->pair;
+			if (w == nullptr || !w->used && curr->level < w->level && dfs(w)) {
+				curr->pair = neigh;
+				neigh->pair = curr;
+				return true;
+			}
 		}
-
-		ll ret = 0;
-		while(bfs()) {
-			blocked.assign(blocked.size(), false);
-			ret += dfs(source, INF);
-		}
-		return ret;
+		return false;
 	}
 };
 
@@ -131,18 +100,13 @@ int main(void) {
 	ll n, m, p;
 	std::cin >> n >> m >> p;
 
-	DinicFlow df(n + m);
+	HopcroftKarp HK(n + m);
 	for (ll a,b; p--;) {
-		std::cin >>a >> b;
-		df.add_edge(a-1, b-1 + n, 1);
+		std::cin >> a >> b;
+		HK.add_edge(a-1, b-1 + n);
 	}
 
-	for (ll i = 0; i < n; ++i)
-		df.add_edge(df.source, i, 1);
-	for (ll i = 0; i < m; ++i)
-		df.add_edge(i + n, df.sink, 1);
-
-	std::cout << df.flow() << "\n";
+	std::cout << HK.match() << "\n";
 
 	return 0;
 }
